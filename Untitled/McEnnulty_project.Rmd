@@ -26,31 +26,71 @@ library(kableExtra)
 
 
 # Introduction
-I have a background in taxonomic identification of marine invertebrates and plankton and working with data sets of species data and associated environmental and spatial details and associated imagery. I have been involved in field sampling using SCUBA diving to survey for introduced marine pests in Australian ports and underwater visual counts for species monitoring. I have used Excel, Access and SQL databases to manage data and have some experience in coding with Oracle and using R to manage data and produce graphs.
+I have a background in taxonomic identification of marine invertebrates and plankton. This requires working with data sets of species data and associated environmental data, spatial details and imagery. I have been involved in fieldwork using SCUBA diving to survey for introduced marine pests in Australian ports and to conduct underwater visual counts for species monitoring. I have used Excel, Access and SQL databases to manage data and have some experience in coding using Oracle to manage data and and R to produce graphs.
 
 
 # My Project
 
-The spotted handfish, _Brachionichthys hirsutus_, is a small fish that "walks on its hands" on the sediments rather than swimming. Its distribution has been heavily impacted on by human activities such as scallop dredging and predation by an introduced seastar _Amurensis australis_ . It is now restricted to a small area in southern Tasmania. The project data presented here examines the changes in the distribution of the handfish since monitoring of the population began at CSIRO in the late 1990's.
+The spotted handfish, _Brachionichthys hirsutus_, is a small marine fish that "walks on its hands" on the bottom sediments rather than swimming. Its distribution has been heavily impacted on by human activities such as scallop dredging and also by predation by an introduced seastar _Amurensis australis_. It is now restricted to a small area in southern Tasmania. The project data presented here examines the changes in the distribution of the handfish since monitoring of the population began at CSIRO in the late 1990's.
 
-```{r echo=FALSE, out.width= "100%", fig.cap = "Spotted handfish, Brachionichthys hirsutus"}
+```{r Figure1, echo=FALSE, out.width= "100%", fig.cap = "Spotted handfish, Brachionichthys hirsutus"}
 knitr::include_graphics("resources/img/Handfish.jpg")
 ```
 
 
-Rather than yourself, this is the space to introduce your **project**. What are 
-your goals, what is your data, how do you plan to work with it? Perhaps show some example data if 
-it would help.
-
-In order to build this demo poster correctly, you will also need to have installed the `tidyverse`, 
-`gapminder`, and `kableExtra` packages.
-
 ## Preliminary results
-Initially, from 1996- 2009 divers swam 100 metre underwater transects and counted the number of fish seen. This data was entered into Excel More recently, divers have towed a gps float and marked the position of each fish while swimming a variable length transect. This data was entered into Access.
+Initially, from 1996- 2009 divers swam 100 metre underwater transects and counted the number of fish seen. This historic dataset was entered into Excel More recently, divers have towed a gps float and marked the position of each fish while swimming a variable length transect. This recent dataset was entered into Access.
 
-Using the skills I have learnt in dataschool I have been able to "tidy" the data using the tidyverse to enable me to conduct some time-series analysis using GLMs.
+Using the skills I have learnt in dataschool I have been able to "tidy" the 2 datasets using the tidyverse so they could be joined together. To do this I used *rename* to remove the spaces from my column names and to make the headings consistent between the 2 data files; *mutate* to change the count column from characters to numbers to enable statistical analyses; *filter* to remove those unnecessary data rows; and *select* to remove the unnecessary data columns. 
 
-![Spotted handfish, _Brachionichthys hirsutus_](resources/img/Handfish.jpg){width=600px}
+*******add in the button to only show code on click******
+```{r tidydata,echo=TRUE, results='hide'}
+library(tidyverse)
+library(lubridate)
+
+Historic_spotted <- read_csv("Data/Historic_spotted.csv")
+glimpse(Historic_spotted)
+
+#tidy historic dataset 
+  #rename variables and fix numbers to numeric
+  #filter(On_transect == "Y")
+  #fix date to date, add year as variable (needs the package(lubridate))
+  #calculate swath area for each transect
+  #note: use Transect_no as Transect_ID is unique in the recent dataset
+
+
+TidyHistoric <- 
+  Historic_spotted %>% 
+    rename("Sample_date" = "Sample Date", "Transect_no" = "Transect #", "Transect_length" = "Transect L", 
+          "Transect_width" = "Transect W", "Fish_count" = "n (fish)", "On_transect" = "On Transect", 
+          "Fish_total_length" = "Fish TL's") %>% 
+    mutate(Fish_count = as.numeric(Fish_count), Fish_total_length = as.numeric(Fish_total_length)) %>%
+    mutate(Sample_date = dmy(Sample_date)) %>% 
+    mutate(Sample_year = year(Sample_date)) %>% 
+    filter((On_transect == "Y")) %>% 
+    mutate(Swath_Area = (Transect_length * Transect_width )) %>% 
+    mutate(Loc_abbr = str_sub(Location, start = 1, end = 4))
+
+TidyHistoric <- TidyHistoric %>% 
+                  select(-On_transect) %>%
+                  arrange(Transect_no) # this is only done to make the table more interesting in the poster
+
+```
+
+I also learnt to use regular expression (regex) coding in R to use str_replace to edit my location names between the 2 datasets where there were spelling differences in the data tables. See the example code below:
+```{r Regex,echo=TRUE}
+#the correct name for this location is Mary-Ann Bay, it is mis-spelt in the historic dataset
+TidyHistoric <- TidyHistoric %>% mutate(Location = str_replace(Location,'Mary-Anne Bay', "Mary-Ann Bay"))
+```
+
+Hopefuly this will enable me to conduct some time-series analysis using GLMs.
+
+**Tables**
+```{r mytable, out.width='100%', echo = F}
+knitr::kable(head(TidyHistoric, n = 5), format = "html", caption = "A tidy data table") %>% 
+  kable_styling("striped")
+```
+
 
 This section will demonstrate the different visuals you might want use to show off your 
 project. Don't feel the need to go overboard, this is supposed to give a taste of the work you are
@@ -61,7 +101,7 @@ you also want to have alternate row highlighting, pass the result to `kable_styl
 from the `kableExtra` package.
 
 **Tables**
-```{r mytable, out.width='100%', echo = T}
+```{r histable, out.width='100%', echo = T}
 knitr::kable(head(gapminder, n = 5), format = "html", caption = "A table of data") %>% 
   kable_styling("striped")
 ```
