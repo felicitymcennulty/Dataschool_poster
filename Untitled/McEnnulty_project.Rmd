@@ -8,6 +8,7 @@ affiliation: CSIRO Oceans and Atmosphere # Or group/team
 photo: resources/img/me.jpg
 
 output: DSreport::project_summary
+          
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -33,7 +34,7 @@ I have a background in taxonomic identification of marine invertebrates and plan
 
 The spotted handfish, _Brachionichthys hirsutus_, is a small marine fish that "walks on its hands" on the bottom sediments rather than swimming. Its distribution has been heavily impacted on by human activities such as scallop dredging and also by predation by an introduced seastar _Amurensis australis_. It is now restricted to a small area in southern Tasmania. The project data presented here examines the changes in the distribution of the handfish since monitoring of the population began at CSIRO in the late 1990's.
 
-```{r Figure1, echo=FALSE, out.width= "100%", fig.cap = "Spotted handfish, Brachionichthys hirsutus"}
+```{r Figure1, echo=FALSE, out.width= "50%", fig.cap = "Spotted handfish, Brachionichthys hirsutus"}
 knitr::include_graphics("resources/img/Handfish.jpg")
 ```
 
@@ -41,10 +42,10 @@ knitr::include_graphics("resources/img/Handfish.jpg")
 ## Preliminary results
 Initially, from 1996- 2009 divers swam 100 metre underwater transects and counted the number of fish seen. This historic dataset was entered into Excel More recently, divers have towed a gps float and marked the position of each fish while swimming a variable length transect. This recent dataset was entered into Access.
 
-Using the skills I have learnt in dataschool I have been able to "tidy" the 2 datasets using the tidyverse so they could be joined together. To do this I used *rename* to remove the spaces from my column names and to make the headings consistent between the 2 data files; *mutate* to change the count column from characters to numbers to enable statistical analyses; *filter* to remove those unnecessary data rows; and *select* to remove the unnecessary data columns. 
+Using the skills I have learnt in dataschool I have been able to "tidy" the 2 datasets using the tidyverse so they could be joined together. To do this I used *rename* to remove the spaces from my column names and to make the headings consistent between the 2 data files; *mutate* to change the count column from characters to numbers to enable statistical analyses; *filter* to remove those unnecessary data rows; and *select* to remove the unnecessary data columns. I also used *group_by*, *arrange* and *summarise* to rearrange my tidy datasets
 
-*******add in the button to only show code on click******
-```{r tidydata,echo=TRUE, results='hide'}
+
+```{r tidydata_show on click,echo=FALSE, results='hide'}
 library(tidyverse)
 library(lubridate)
 
@@ -57,7 +58,6 @@ glimpse(Historic_spotted)
   #fix date to date, add year as variable (needs the package(lubridate))
   #calculate swath area for each transect
   #note: use Transect_no as Transect_ID is unique in the recent dataset
-
 
 TidyHistoric <- 
   Historic_spotted %>% 
@@ -73,95 +73,86 @@ TidyHistoric <-
 
 TidyHistoric <- TidyHistoric %>% 
                   select(-On_transect) %>%
-                  arrange(Transect_no) # this is only done to make the table more interesting in the poster
-
+                  arrange(Transect_no)
 ```
 
-I also learnt to use regular expression (regex) coding in R to use str_replace to edit my location names between the 2 datasets where there were spelling differences in the data tables. See the example code below:
-```{r Regex,echo=TRUE}
+I learnt to use regular expression (regex) coding in R to use str_replace to edit my location names between the 2 datasets where there were spelling differences in the data tables. See the example code below:
+```{r Regex_show code,echo=TRUE}
 #the correct name for this location is Mary-Ann Bay, it is mis-spelt in the historic dataset
 TidyHistoric <- TidyHistoric %>% mutate(Location = str_replace(Location,'Mary-Anne Bay', "Mary-Ann Bay"))
 ```
 
+Another handy thing I learnt was how to add in a index column of row numbers, the sample code below was used to produce Table \@ref(tab:mytidytable) 
+```{r more tidying_hide code and results, echo=FALSE, results='hide'}
+#number of fish per transect by location
+Historic_bytransect <- TidyHistoric %>% 
+                        group_by(Location, Loc_abbr, Sample_date, Transect_no, Swath_Area) %>% 
+                        summarise(Fish_count = n()) %>% 
+                        rename ("Total_fish" = "Fish_count")
+```
+
+```{r add row numbers_show code, echo=TRUE,results= "hide"}
+
+#add in a row number column
+index_numbers <-  1:nrow(Historic_bytransect) # to count no. of rows in data frame
+Historic_bytransect <- Historic_bytransect %>% 
+                        ungroup %>% 
+                        arrange(Sample_date) %>% 
+                        mutate(Row_ID = index_numbers)
+```
+
+
+**Tables**
+```{r mytidytable, out.width='80%', echo = F}
+knitr::kable(head(Historic_bytransect, n = 5), format = "html", caption = "A tidy data table with row numbers") %>% 
+  kable_styling("striped")
+```
+
 Hopefuly this will enable me to conduct some time-series analysis using GLMs.
-
-**Tables**
-```{r mytable, out.width='100%', echo = F}
-knitr::kable(head(TidyHistoric, n = 5), format = "html", caption = "A tidy data table") %>% 
-  kable_styling("striped")
-```
-
-
-This section will demonstrate the different visuals you might want use to show off your 
-project. Don't feel the need to go overboard, this is supposed to give a taste of the work you are
-doing rather than being a publication ready document.
-
-To get tables formatting correctly, use `knitr::kable` to convert the table to html format. If
-you also want to have alternate row highlighting, pass the result to `kable_styling('striped')` 
-from the `kableExtra` package.
-
-**Tables**
-```{r histable, out.width='100%', echo = T}
-knitr::kable(head(gapminder, n = 5), format = "html", caption = "A table of data") %>% 
-  kable_styling("striped")
-```
-
-**Images from a file**
-
 
 
 **Plots from R**
-```{r standard-plot, out.width='60%', fig.align='center', fig.height= 4, fig.width=6, fig.cap="Yet another gapminder plot"}
-gapminder %>% 
-  filter(year == 1987) %>% 
-  ggplot(aes(x = gdpPercap, y = lifeExp, colour = continent, size = pop)) +
-  geom_point() +
-  scale_x_log10(labels = function(b) format(b, scientific = F)) +
-  scale_size(trans = "sqrt", guide = "none") +
-  scale_color_brewer(palette = "Set1") +
-  theme_linedraw() +
-  theme(legend.position = "bottom")
+
+Here is a ggplot showing the density of fish using facet_wrap to show the separate sampling sites
+
+```{r standard-plot, out.width='80%', fig.align='center', fig.height= 6, fig.width=10, fig.cap="Handfish densities in sites near Hobart"}
+
+Mean_density <- read_csv("Data/Recent_mean_density.csv") 
+
+plot1 <-  Mean_density %>% 
+  ggplot(aes(x= Sample_year, y = meanN_Ha))+
+  geom_col(colour = "blue", fill = "blue") +
+  geom_errorbar(aes(Sample_year, ymax = meanN_Ha + seN_Ha, ymin = meanN_Ha - seN_Ha )) +
+  scale_y_continuous(breaks = seq(0,70,by = 20), limits = c(0,70), expand = c(0,0)) + 
+  facet_wrap(~Location, nrow = 2, ncol = 5) +
+  theme_bw()+
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        strip.background = element_blank(),
+        plot.title = element_text(face = "bold"))+
+  labs(title = "Density of fish by site over the sampling period",
+       x = "Year", y = "Mean density per Hectare \u00b1 standard error")
+plot1
 ```
 
-Your figure and table captions are automatically numbered and can be referenced in the text
-if needed: see eg. Table \@ref(tab:mytable) and Figure \@ref(fig:standard-plot)
 
 # My Digital Toolbox
 
 ![](resources/img/tidyverse.png){width=100px}
 
-What digital tools have you been using in your project? Do you expect that everything will be able 
-to be completed within R, or will you need to work with multiple tools to get the right result?
-Which of the digital skills needed for your project have you learned since starting Data School?
-
-You can use all the usual R markdown features in writing a project summary, including lists:
-
-* R - dplyr, ggplot, ...
-* Python
-* SQL
-
-## Favourite tool (optional)
-
-Is there a tool/package/function in particular that you've enjoyed using? Give it a special shout out here. What about this tool makes it your favourite?
+Learning to use the tidyverse has been a great help to my programming in R with all those new functions that it makes available. 
 
 ![](https://raw.githubusercontent.com/tidyverse/ggplot2/master/man/figures/logo.png){.pull-right width=100px}
 
-No prizes for guessing mine:
+GGplot and the add-ons GGanimate and the integration in Plotly are going to be useful in the future once I have time to play with them
 
 # My time went ...
-
-What parts of your project take the most time and effort? Were there any surprising challenges you
-encountered, and how did you solve them?
+tidying and merging datasets compiled in several different formats over the decades.
 
 # Next steps
 
-What further steps do you wish your project could take? Or are there any new digital skills that you
-are keen to develop as a result of your involvement in the Data School?
+I am keen to spend more time investigating the concepts and techniques I have learnt in Data School on my projects going forward.
+
 
 # My Data School Experience
-
-This summary is mostly about your project. However we would also like to hear about other
-parts of your Data School experience. What aspects of the program did you really enjoy? Have you
-tried applying the skills you have learned in your daily work? Have you been able to transfer this 
-knowledge to your team members? Any descriptions of the personal impact the program has 
-had are welcome here as well!
+Having the experience of working through examples in Data School in class, in small groups and as "homework" has helped me consolidate the techniques and made it easier to remember how to do things, but also I now know where to go for help from a myriad of sources and links provided during the course.
