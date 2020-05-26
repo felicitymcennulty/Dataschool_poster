@@ -44,12 +44,6 @@ Initially, from 1996- 2009 divers swam 100 metre underwater transects and counte
 
 Using the skills I have learnt in dataschool I have been able to "tidy" the 2 datasets using the tidyverse so they could be joined together. To do this I used *rename* to remove the spaces from my column names and to make the headings consistent between the 2 data files; *mutate* to change the count column from characters to numbers to enable statistical analyses; *filter* to remove those unnecessary data rows; and *select* to remove the unnecessary data columns. I also used *group_by*, *arrange* and *summarise* to rearrange my tidy datasets
 
-*******add in the button to only show code on click******
-?how to edit in this given it has "output: DSreport::project_summary" in title bar
-output: 
-  html_document:
-    code_folding: hide
-***************
 
 ```{r tidydata_show on click,echo=FALSE, results='hide'}
 library(tidyverse)
@@ -109,7 +103,7 @@ Historic_bytransect <- Historic_bytransect %>%
 
 
 **Tables**
-```{r mytidytable, out.width='100%', echo = F}
+```{r mytidytable, out.width='80%', echo = F}
 knitr::kable(head(Historic_bytransect, n = 5), format = "html", caption = "A tidy data table with row numbers") %>% 
   kable_styling("striped")
 ```
@@ -118,7 +112,9 @@ Hopefuly this will enable me to conduct some time-series analysis using GLMs.
 
 
 **Plots from R**
-Here is a ggplot showing the density of fish, note that the areas these fish are found are very small.
+
+Here is a ggplot showing the density of fish using facet_wrap to show the separate sampling sites
+
 ```{r standard-plot, out.width='80%', fig.align='center', fig.height= 6, fig.width=10, fig.cap="Handfish densities in sites near Hobart"}
 
 Mean_density <- read_csv("Data/Recent_mean_density.csv") 
