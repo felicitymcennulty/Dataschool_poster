@@ -8,6 +8,7 @@ affiliation: CSIRO Oceans and Atmosphere # Or group/team
 photo: resources/img/me.jpg
 
 output: DSreport::project_summary
+          
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
@@ -44,6 +45,12 @@ Initially, from 1996- 2009 divers swam 100 metre underwater transects and counte
 Using the skills I have learnt in dataschool I have been able to "tidy" the 2 datasets using the tidyverse so they could be joined together. To do this I used *rename* to remove the spaces from my column names and to make the headings consistent between the 2 data files; *mutate* to change the count column from characters to numbers to enable statistical analyses; *filter* to remove those unnecessary data rows; and *select* to remove the unnecessary data columns. I also used *group_by*, *arrange* and *summarise* to rearrange my tidy datasets
 
 *******add in the button to only show code on click******
+?how to edit in this given it has "output: DSreport::project_summary" in title bar
+output: 
+  html_document:
+    code_folding: hide
+***************
+
 ```{r tidydata_show on click,echo=FALSE, results='hide'}
 library(tidyverse)
 library(lubridate)
@@ -111,57 +118,45 @@ Hopefuly this will enable me to conduct some time-series analysis using GLMs.
 
 
 **Plots from R**
-```{r standard-plot, out.width='60%', fig.align='center', fig.height= 4, fig.width=6, fig.cap="Yet another gapminder plot"}
-gapminder %>% 
-  filter(year == 1987) %>% 
-  ggplot(aes(x = gdpPercap, y = lifeExp, colour = continent, size = pop)) +
-  geom_point() +
-  scale_x_log10(labels = function(b) format(b, scientific = F)) +
-  scale_size(trans = "sqrt", guide = "none") +
-  scale_color_brewer(palette = "Set1") +
-  theme_linedraw() +
-  theme(legend.position = "bottom")
+Here is a ggplot showing the density of fish, note that the areas these fish are found are very small.
+```{r standard-plot, out.width='80%', fig.align='center', fig.height= 6, fig.width=10, fig.cap="Handfish densities in sites near Hobart"}
+
+Mean_density <- read_csv("Data/Recent_mean_density.csv") 
+
+plot1 <-  Mean_density %>% 
+  ggplot(aes(x= Sample_year, y = meanN_Ha))+
+  geom_col(colour = "blue", fill = "blue") +
+  geom_errorbar(aes(Sample_year, ymax = meanN_Ha + seN_Ha, ymin = meanN_Ha - seN_Ha )) +
+  scale_y_continuous(breaks = seq(0,70,by = 20), limits = c(0,70), expand = c(0,0)) + 
+  facet_wrap(~Location, nrow = 2, ncol = 5) +
+  theme_bw()+
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        strip.background = element_blank(),
+        plot.title = element_text(face = "bold"))+
+  labs(title = "Density of fish by site over the sampling period",
+       x = "Year", y = "Mean density per Hectare \u00b1 standard error")
+plot1
 ```
 
-Your figure and table captions are automatically numbered and can be referenced in the text
-if needed: see eg. Table \@ref(tab:mytable) and Figure \@ref(fig:standard-plot)
 
 # My Digital Toolbox
 
 ![](resources/img/tidyverse.png){width=100px}
 
-What digital tools have you been using in your project? Do you expect that everything will be able 
-to be completed within R, or will you need to work with multiple tools to get the right result?
-Which of the digital skills needed for your project have you learned since starting Data School?
-
-You can use all the usual R markdown features in writing a project summary, including lists:
-
-* R - dplyr, ggplot, ...
-* Python
-* SQL
-
-## Favourite tool (optional)
-
-Is there a tool/package/function in particular that you've enjoyed using? Give it a special shout out here. What about this tool makes it your favourite?
+Learning to use the tidyverse has been a great help to my programming in R with all those new functions that it makes available. 
 
 ![](https://raw.githubusercontent.com/tidyverse/ggplot2/master/man/figures/logo.png){.pull-right width=100px}
 
-No prizes for guessing mine:
+GGplot and the add-ons GGanimate and the integration in Plotly are going to be useful in the future once I have time to play with them
 
 # My time went ...
-
-What parts of your project take the most time and effort? Were there any surprising challenges you
-encountered, and how did you solve them?
+tidying and merging datasets compiled in several different formats over the decades.
 
 # Next steps
 
-What further steps do you wish your project could take? Or are there any new digital skills that you
-are keen to develop as a result of your involvement in the Data School?
+I am keen to spend more time investigating the concepts and techniques I have learnt in Data School on my projects going forward.
+
 
 # My Data School Experience
-
-This summary is mostly about your project. However we would also like to hear about other
-parts of your Data School experience. What aspects of the program did you really enjoy? Have you
-tried applying the skills you have learned in your daily work? Have you been able to transfer this 
-knowledge to your team members? Any descriptions of the personal impact the program has 
-had are welcome here as well!
+Having the experience of working through examples in Data School in class, in small groups and as "homework" has helped me consolidate the techniques and made it easier to remember how to do things, but also I now know where to go for help from a myriad of sources and links provided during the course.
